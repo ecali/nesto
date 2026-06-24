@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -27,13 +27,9 @@ export default function Layout() {
   const { user, logout } = useAuth()
   const { t, locale } = useTranslation()
   const { resolvedTheme, setTheme } = useTheme()
-  const { spaces, activeSpace, fetchSpaces, setActiveSpace } = useStore()
+  const { spaces, activeSpace, setActiveSpace } = useStore()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  useEffect(() => {
-    fetchSpaces()
-  }, [fetchSpaces])
 
   const navItems = [
     { href: '/dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
