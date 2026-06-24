@@ -15,7 +15,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStore } from '@/store'
 import { format } from 'date-fns'
-import { it } from 'date-fns/locale'
+import { useTranslation } from '@/i18n'
+import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
 
 const defaultCategories = [
@@ -31,6 +32,7 @@ const defaultCategories = [
 ]
 
 export default function ExpensesPage() {
+  const { t, locale } = useTranslation()
   const { expenses, fetchExpenses, addExpense, deleteExpense } = useStore()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
@@ -73,31 +75,31 @@ export default function ExpensesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Spese</h1>
-          <p className="text-muted-foreground">Registra e monitora le spese familiari</p>
+          <h1 className="text-2xl font-bold">{t.expenses.title}</h1>
+          <p className="text-muted-foreground">{t.expenses.subtitle}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="size-4" />
-              Nuova spesa
+              {t.expenses.newExpense}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nuova spesa</DialogTitle>
-              <DialogDescription>Aggiungi una spesa familiare</DialogDescription>
+              <DialogTitle>{t.expenses.newExpense}</DialogTitle>
+              <DialogDescription>{t.expenses.addExpense}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="amount">Importo</Label>
+                <Label htmlFor="amount">{t.expenses.amount}</Label>
                 <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="category">Categoria</Label>
+                <Label htmlFor="category">{t.expenses.category}</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger id="category">
-                    <SelectValue placeholder="Seleziona categoria" />
+                    <SelectValue placeholder={t.expenses.selectCategory} />
                   </SelectTrigger>
                   <SelectContent>
                     {defaultCategories.map((c) => (
@@ -107,17 +109,17 @@ export default function ExpensesPage() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="description">Descrizione</Label>
-                <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Cosa hai comprato?" />
+                <Label htmlFor="description">{t.expenses.description}</Label>
+                <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t.expenses.whatDidYouBuy} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="date">Data</Label>
+                <Label htmlFor="date">{t.expenses.date}</Label>
                 <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Annulla</Button>
-              <Button onClick={handleAdd}>Salva</Button>
+              <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
+              <Button onClick={handleAdd}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -125,7 +127,7 @@ export default function ExpensesPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Riepilogo</CardTitle>
+          <CardTitle>{t.expenses.summary}</CardTitle>
           <input
             type="month"
             value={filterMonth}
@@ -135,7 +137,7 @@ export default function ExpensesPage() {
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold text-primary">&euro;{total.toFixed(2)}</div>
-          <p className="text-sm text-muted-foreground">{filtered.length} spese nel mese</p>
+          <p className="text-sm text-muted-foreground">{filtered.length} {t.expenses.expensesInMonth}</p>
           {Object.keys(byCategory).length > 0 && (
             <div className="mt-4 space-y-2">
               {Object.entries(byCategory)
@@ -156,16 +158,16 @@ export default function ExpensesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Spese ({filtered.length})</CardTitle>
+          <CardTitle>{t.expenses.expensesList} ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead className="text-right">Importo</TableHead>
+                <TableHead>{t.expenses.date}</TableHead>
+                <TableHead>{t.expenses.description}</TableHead>
+                <TableHead>{t.expenses.category}</TableHead>
+                <TableHead className="text-right">{t.expenses.amount}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -173,13 +175,13 @@ export default function ExpensesPage() {
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    Nessuna spesa in questo mese
+                    {t.expenses.noExpenses}
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((e) => (
                   <TableRow key={e.id}>
-                    <TableCell>{format(new Date(e.date), 'd MMM', { locale: it })}</TableCell>
+                    <TableCell>{format(new Date(e.date), 'd MMM', { locale: dateLocale(locale) })}</TableCell>
                     <TableCell className="font-medium">{e.description}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">

@@ -9,23 +9,33 @@ import {
   Menu,
   X,
   ChevronRight,
+  Settings,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
+import { useTheme } from '@/hooks/use-theme'
+import { useTranslation } from '@/i18n'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/expenses', label: 'Spese', icon: Wallet },
-  { href: '/calendar', label: 'Calendario', icon: Calendar },
-  { href: '/reminders', label: 'Promemoria', icon: Bell },
-]
-
 export default function Layout() {
   const { user, logout } = useAuth()
+  const { t, locale } = useTranslation()
+  const { resolvedTheme, setTheme } = useTheme()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const navItems = [
+    { href: '/dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
+    { href: '/expenses', label: t.nav.expenses, icon: Wallet },
+    { href: '/calendar', label: t.nav.calendar, icon: Calendar },
+    { href: '/reminders', label: t.nav.reminders, icon: Bell },
+    { href: '/settings', label: t.nav.settings, icon: Settings },
+  ]
+
+  const localeMap: Record<string, string> = { en: 'en-US', it: 'it-IT', es: 'es-ES' }
 
   const initials = user?.name
     ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -95,8 +105,15 @@ export default function Layout() {
             <Menu className="size-5" />
           </button>
           <div className="flex-1" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+          >
+            {resolvedTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </Button>
           <p className="text-sm text-muted-foreground">
-            {new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            {new Date().toLocaleDateString(localeMap[locale], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </header>
 

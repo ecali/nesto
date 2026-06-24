@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/tabs'
 import { useStore } from '@/store'
 import { format } from 'date-fns'
-import { it } from 'date-fns/locale'
+import { useTranslation } from '@/i18n'
+import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
 import type { ReminderType } from '@/types'
 
@@ -29,15 +30,16 @@ const typeIcons = {
   'one-time': Clock,
 }
 
-const typeLabels = {
-  'todo': 'Da fare',
-  'recurring': 'Ricorrente',
-  'one-time': 'Una tantum',
-}
-
 export default function RemindersPage() {
+  const { t, locale } = useTranslation()
   const { reminders, fetchReminders, addReminder, toggleReminder, deleteReminder } = useStore()
   const { user } = useAuth()
+
+  const typeLabels: Record<string, string> = {
+    'todo': t.reminders.todo,
+    'recurring': t.reminders.recurring,
+    'one-time': t.reminders.oneTime,
+  }
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -73,7 +75,7 @@ export default function RemindersPage() {
 
   function renderList(items: typeof reminders, showDoneToggle = true) {
     if (items.length === 0) {
-      return <p className="text-muted-foreground py-8 text-center">Nessun promemoria</p>
+      return <p className="text-muted-foreground py-8 text-center">{t.reminders.noReminders}</p>
     }
     return (
       <div className="space-y-2">
@@ -100,7 +102,7 @@ export default function RemindersPage() {
                     {typeLabels[r.type]}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(r.due_date), 'd MMM yyyy', { locale: it })}
+                    {format(new Date(r.due_date), 'd MMM yyyy', { locale: dateLocale(locale) })}
                   </span>
                   {r.recurring_rule && (
                     <span className="text-xs text-muted-foreground">({r.recurring_rule})</span>
@@ -121,69 +123,69 @@ export default function RemindersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Promemoria</h1>
-          <p className="text-muted-foreground">Todo list, appuntamenti ricorrenti e promemoria</p>
+          <h1 className="text-2xl font-bold">{t.reminders.title}</h1>
+          <p className="text-muted-foreground">{t.reminders.subtitle}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="size-4" />
-              Nuovo promemoria
+              {t.reminders.newReminder}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nuovo promemoria</DialogTitle>
-              <DialogDescription>Cosa devi ricordare?</DialogDescription>
+              <DialogTitle>{t.reminders.newReminder}</DialogTitle>
+              <DialogDescription>{t.reminders.addReminder}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="title">Titolo</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titolo del promemoria" />
+                <Label htmlFor="title">{t.reminders.titleField}</Label>
+                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.reminders.titleField} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="desc">Descrizione</Label>
-                <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrizione (opzionale)" />
+                <Label htmlFor="desc">{t.reminders.descriptionField}</Label>
+                <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t.reminders.descriptionField + ' (' + t.reminders.optional + ')'} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="type">Tipo</Label>
+                <Label htmlFor="type">{t.reminders.type}</Label>
                 <Select value={type} onValueChange={(v) => setType(v as ReminderType)}>
                   <SelectTrigger id="type">
-                    <SelectValue placeholder="Tipo promemoria" />
+                    <SelectValue placeholder={t.reminders.type} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todo">Da fare</SelectItem>
-                    <SelectItem value="recurring">Ricorrente</SelectItem>
-                    <SelectItem value="one-time">Una tantum</SelectItem>
+                    <SelectItem value="todo">{t.reminders.todo}</SelectItem>
+                    <SelectItem value="recurring">{t.reminders.recurring}</SelectItem>
+                    <SelectItem value="one-time">{t.reminders.oneTime}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="dueDate">Scadenza</Label>
+                <Label htmlFor="dueDate">{t.reminders.dueDate}</Label>
                 <Input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </div>
               {type === 'recurring' && (
                 <div className="grid gap-2">
-                  <Label htmlFor="rule">Regola ricorrenza</Label>
+                  <Label htmlFor="rule">{t.reminders.recurringRule}</Label>
                   <Select value={recurringRule} onValueChange={setRecurringRule}>
                     <SelectTrigger id="rule">
-                      <SelectValue placeholder="Ogni quanto?" />
+                      <SelectValue placeholder={t.reminders.recurringRule} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ogni giorno">Ogni giorno</SelectItem>
-                      <SelectItem value="ogni settimana">Ogni settimana</SelectItem>
-                      <SelectItem value="ogni 2 settimane">Ogni 2 settimane</SelectItem>
-                      <SelectItem value="ogni mese">Ogni mese</SelectItem>
-                      <SelectItem value="ogni 3 mesi">Ogni 3 mesi</SelectItem>
-                      <SelectItem value="ogni anno">Ogni anno</SelectItem>
+                      <SelectItem value="daily">{t.reminders.daily}</SelectItem>
+                      <SelectItem value="weekly">{t.reminders.weekly}</SelectItem>
+                      <SelectItem value="biweekly">{t.reminders.biweekly}</SelectItem>
+                      <SelectItem value="monthly">{t.reminders.monthly}</SelectItem>
+                      <SelectItem value="quarterly">{t.reminders.quarterly}</SelectItem>
+                      <SelectItem value="yearly">{t.reminders.yearly}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Annulla</Button>
-              <Button onClick={handleAdd}>Salva</Button>
+              <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
+              <Button onClick={handleAdd}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -191,13 +193,13 @@ export default function RemindersPage() {
 
       <Tabs defaultValue="active">
         <TabsList>
-          <TabsTrigger value="active">Attivi ({activeReminders.length})</TabsTrigger>
-          <TabsTrigger value="done">Completati ({doneReminders.length})</TabsTrigger>
+          <TabsTrigger value="active">{t.reminders.active} ({activeReminders.length})</TabsTrigger>
+          <TabsTrigger value="done">{t.reminders.completed} ({doneReminders.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="active" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Promemoria attivi</CardTitle>
+              <CardTitle>{t.reminders.activeReminders}</CardTitle>
             </CardHeader>
             <CardContent>{renderList(activeReminders)}</CardContent>
           </Card>
@@ -205,7 +207,7 @@ export default function RemindersPage() {
         <TabsContent value="done" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Promemoria completati</CardTitle>
+              <CardTitle>{t.reminders.completedReminders}</CardTitle>
             </CardHeader>
             <CardContent>{renderList(doneReminders)}</CardContent>
           </Card>

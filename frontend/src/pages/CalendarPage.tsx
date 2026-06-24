@@ -12,10 +12,12 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { useStore } from '@/store'
 import { format } from 'date-fns'
-import { it } from 'date-fns/locale'
+import { useTranslation } from '@/i18n'
+import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
 
 export default function CalendarPage() {
+  const { t, locale } = useTranslation()
   const { appointments, fetchAppointments, addAppointment, deleteAppointment } = useStore()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
@@ -53,44 +55,44 @@ export default function CalendarPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Calendario</h1>
-          <p className="text-muted-foreground">Appuntamenti e impegni familiari</p>
+          <h1 className="text-2xl font-bold">{t.calendar.title}</h1>
+          <p className="text-muted-foreground">{t.calendar.subtitle}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="size-4" />
-              Nuovo appuntamento
+              {t.calendar.newAppointment}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nuovo appuntamento</DialogTitle>
-              <DialogDescription>Aggiungi un impegno al calendario</DialogDescription>
+              <DialogTitle>{t.calendar.newAppointment}</DialogTitle>
+              <DialogDescription>{t.calendar.addAppointment}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="title">Titolo</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titolo dell'appuntamento" />
+                <Label htmlFor="title">{t.calendar.titleField}</Label>
+                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.calendar.appointmentTitle} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="desc">Descrizione</Label>
-                <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrizione (opzionale)" />
+                <Label htmlFor="desc">{t.calendar.descriptionField}</Label>
+                <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t.calendar.appointmentDesc} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="time">Ora</Label>
+                  <Label htmlFor="time">{t.calendar.time}</Label>
                   <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="duration">Durata (min)</Label>
+                  <Label htmlFor="duration">{t.calendar.duration}</Label>
                   <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} />
                 </div>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Annulla</Button>
-              <Button onClick={handleAdd}>Salva</Button>
+              <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
+              <Button onClick={handleAdd}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -99,19 +101,19 @@ export default function CalendarPage() {
       <div className="grid gap-6 md:grid-cols-[auto_1fr]">
         <Card>
           <CardContent className="p-3">
-            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={it} className="rounded-md" />
+            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={dateLocale(locale)} className="rounded-md" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>
-              {date ? format(date, 'EEEE d MMMM yyyy', { locale: it }) : 'Seleziona un giorno'}
+              {date ? format(date, 'EEEE d MMMM yyyy', { locale: dateLocale(locale) }) : t.calendar.selectDay}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {dayAppointments.length === 0 ? (
-              <p className="text-muted-foreground py-8 text-center">Nessun appuntamento in questo giorno</p>
+              <p className="text-muted-foreground py-8 text-center">{t.calendar.noAppointments}</p>
             ) : (
               <div className="space-y-3">
                 {dayAppointments.map((a) => (

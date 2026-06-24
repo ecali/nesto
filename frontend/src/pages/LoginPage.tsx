@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
+import { useTranslation } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login, register, isAuthenticated } = useAuth()
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -33,7 +35,7 @@ export default function LoginPage() {
       }
       navigate('/dashboard', { replace: true })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Errore durante l\'accesso')
+      setError(err instanceof Error ? err.message : t.auth.loginError)
     } finally {
       setLoading(false)
     }
@@ -48,36 +50,36 @@ export default function LoginPage() {
             <CardTitle className="text-2xl">Nesto</CardTitle>
           </div>
           <CardDescription>
-            {mode === 'login' ? 'Accedi al tuo account' : 'Crea un nuovo account'}
+            {mode === 'login' ? t.auth.loginTitle : t.auth.registerTitle}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {mode === 'register' && (
               <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
+                <Label htmlFor="name">{t.auth.name}</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Mario Rossi" required />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.auth.email}</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="mario@esempio.it" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t.auth.password}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Attendi...' : mode === 'login' ? 'Accedi' : 'Registrati'}
+              {loading ? t.app.loading : mode === 'login' ? t.auth.login : t.auth.register}
             </Button>
             <p className="text-sm text-muted-foreground">
               {mode === 'login' ? (
-                <>Non hai un account? <button type="button" onClick={() => setMode('register')} className="text-primary underline cursor-pointer">Registrati</button></>
+                <>{t.auth.noAccount} <button type="button" onClick={() => setMode('register')} className="text-primary underline cursor-pointer">{t.auth.signUp}</button></>
               ) : (
-                <>Hai già un account? <button type="button" onClick={() => setMode('login')} className="text-primary underline cursor-pointer">Accedi</button></>
+                <>{t.auth.haveAccount} <button type="button" onClick={() => setMode('login')} className="text-primary underline cursor-pointer">{t.auth.login}</button></>
               )}
             </p>
           </CardFooter>
