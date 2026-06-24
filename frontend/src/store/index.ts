@@ -75,18 +75,33 @@ export const useStore = create<NestoStore>((set, get) => ({
   },
 
   addExpense: async (data) => {
-    await pb.collection('expenses').create(data)
-    get().fetchExpenses(get().activeSpace ?? undefined)
+    try {
+      await pb.collection('expenses').create(data)
+      get().fetchExpenses(get().activeSpace ?? undefined)
+    } catch (e) {
+      console.error('addExpense failed:', e)
+      throw e
+    }
   },
 
   addAppointment: async (data) => {
-    await pb.collection('appointments').create(data)
-    get().fetchAppointments(get().activeSpace ?? undefined)
+    try {
+      await pb.collection('appointments').create(data)
+      get().fetchAppointments(get().activeSpace ?? undefined)
+    } catch (e) {
+      console.error('addAppointment failed:', e)
+      throw e
+    }
   },
 
   addReminder: async (data) => {
-    await pb.collection('reminders').create(data)
-    get().fetchReminders(get().activeSpace ?? undefined)
+    try {
+      await pb.collection('reminders').create(data)
+      get().fetchReminders(get().activeSpace ?? undefined)
+    } catch (e) {
+      console.error('addReminder failed:', e)
+      throw e
+    }
   },
 
   addCategory: async (data) => {

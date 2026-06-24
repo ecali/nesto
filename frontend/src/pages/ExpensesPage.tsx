@@ -18,7 +18,7 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
-import type { ExpenseType } from '@/types'
+import type { Expense, ExpenseType } from '@/types'
 
 export default function ExpensesPage() {
   const { t, locale } = useTranslation()
@@ -34,6 +34,8 @@ export default function ExpensesPage() {
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [catName, setCatName] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [detailExpense, setDetailExpense] = useState<Expense | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   useEffect(() => {
     fetchExpenses(activeSpace ?? undefined)
@@ -65,22 +67,26 @@ export default function ExpensesPage() {
 
   async function handleAdd() {
     if (!validate()) return
-    await addExpense({
-      amount: parseFloat(amount),
-      category,
-      description,
-      type: expenseType,
-      date,
-      space: activeSpace!,
-      paid_by: user?.id ?? '',
-    })
-    setAmount('')
-    setCategory('')
-    setDescription('')
-    setErrors({})
-    setExpenseType('expense')
-    setDate(new Date().toISOString().split('T')[0])
-    setOpen(false)
+    try {
+      await addExpense({
+        amount: parseFloat(amount),
+        category,
+        description,
+        type: expenseType,
+        date,
+        space: activeSpace!,
+        paid_by: user?.id ?? '',
+      })
+      setAmount('')
+      setCategory('')
+      setDescription('')
+      setErrors({})
+      setExpenseType('expense')
+      setDate(new Date().toISOString().split('T')[0])
+      setOpen(false)
+    } catch (e) {
+      console.error('Failed to create expense:', e)
+    }
   }
 
   const [catErrors, setCatErrors] = useState<Record<string, string>>({})
@@ -272,7 +278,7 @@ export default function ExpensesPage() {
                 </TableRow>
               ) : (
                 filtered.map((e) => (
-                  <TableRow key={e.id}>
+                  <TableRow key={e.id} className="cursor-pointer" onClick={() => { setDetailExpense(e); setDetailOpen(true) }}>
                     <TableCell>
                       {e.type === 'income' ? (
                         <ArrowUpCircle className="size-4 text-emerald-500" />
@@ -287,11 +293,11 @@ export default function ExpensesPage() {
                         {catMap[e.category] || e.category}
                       </span>
                     </TableCell>
-                    <TableCell className={`text-right font-semibold ${e.type === 'income' ? 'text-emerald-500' : ''}`}>
+                    <TableCell className={`text-right font-semibold ${e.type === 'income' ? 'text-emerald-500' : 'text-destructive'}`}>
                       {e.type === 'income' ? '+' : '–'}&euro;{e.amount.toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteExpense(e.id)}>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={(ev) => { ev.stopPropagation(); deleteExpense(e.id) }}>
                         <Trash2 className="size-4" />
                       </Button>
                     </TableCell>
@@ -302,6 +308,40 @@ export default function ExpensesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{detailExpense?.description}</DialogTitle>
+            <DialogDescription>
+              {detailExpense?.type === 'income' ? t.expenses.income : t.expenses.expense} — {detailExpense?.date}
+            </DialogDescription>
+          </DialogHeader>
+          {detailExpense && (
+            <div className="grid gap-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t.expenses.amount}</span>
+                <span className={`text-lg font-bold ${detailExpense.type === 'income' ? 'text-emerald-500' : 'text-destructive'}`}>
+                  {detailExpense.type === 'income' ? '+' : '–'}&euro;{detailExpense.amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t.expenses.category}</span>
+                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">
+                  {catMap[detailExpense.category] || detailExpense.category}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t.expenses.date}</span>
+                <span>{detailExpense.date}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailOpen(false)}>{t.app.close}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
         </>
       )}
     </div>

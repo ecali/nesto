@@ -83,6 +83,7 @@ export const it = {
     selectDay: 'Seleziona un giorno',
     appointmentTitle: "Titolo dell'appuntamento",
     appointmentDesc: 'Descrizione (opzionale)',
+    date: 'Data',
   },
   reminders: {
     title: 'Promemoria',

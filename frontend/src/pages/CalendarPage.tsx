@@ -29,6 +29,7 @@ export default function CalendarPage() {
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState('60')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [apptDate, setApptDate] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
     fetchAppointments(activeSpace ?? undefined)
@@ -40,6 +41,7 @@ export default function CalendarPage() {
   function validate(): boolean {
     var errs: Record<string, string> = {}
     if (!title) errs.title = t.validation.required
+    if (!apptDate) errs.date = t.validation.required
     if (!activeSpace) errs.space = t.validation.selectSpaceFirst
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -47,21 +49,26 @@ export default function CalendarPage() {
 
   async function handleAdd() {
     if (!validate()) return
-    await addAppointment({
-      title,
-      description,
-      date: selectedDateStr,
-      time,
-      duration: parseInt(duration),
-      space: activeSpace!,
-      created_by: user?.id ?? '',
-    })
-    setTitle('')
-    setTime('')
-    setDescription('')
-    setErrors({})
-    setDuration('60')
-    setOpen(false)
+    try {
+      await addAppointment({
+        title,
+        description,
+        date: apptDate,
+        time,
+        duration: parseInt(duration),
+        space: activeSpace!,
+        created_by: user?.id ?? '',
+      })
+      setTitle('')
+      setTime('')
+      setDescription('')
+      setErrors({})
+      setDuration('60')
+      setApptDate(new Date().toISOString().split('T')[0])
+      setOpen(false)
+    } catch (e) {
+      console.error('Failed to create appointment:', e)
+    }
   }
 
   return (
@@ -101,6 +108,10 @@ export default function CalendarPage() {
               <div className="grid gap-2">
                 <Label htmlFor="desc">{t.calendar.descriptionField}</Label>
                 <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t.calendar.appointmentDesc} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="apptDate">{t.calendar.date}</Label>
+                <Input id="apptDate" type="date" value={apptDate} onChange={(e) => setApptDate(e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -142,19 +153,21 @@ export default function CalendarPage() {
               <div className="space-y-3">
                 {dayAppointments.map((a) => (
                   <div key={a.id} className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="flex items-start gap-4">
-                      {a.time && (
-                        <div className="text-center">
+                    <div className="grid grid-cols-[auto_1fr] gap-4 items-start">
+                      {a.time ? (
+                        <div className="text-center min-w-[4rem]">
                           <p className="text-lg font-bold text-primary">{a.time}</p>
-                          <p className="text-xs text-muted-foreground">{a.duration} min</p>
+                          {a.duration && <p className="text-xs text-muted-foreground">{a.duration} min</p>}
                         </div>
+                      ) : (
+                        <div className="min-w-[4rem]" />
                       )}
                       <div>
                         <p className="font-medium">{a.title}</p>
                         {a.description && <p className="text-sm text-muted-foreground">{a.description}</p>}
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteAppointment(a.id)}>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={() => deleteAppointment(a.id)}>
                       <Trash2 className="size-4" />
                     </Button>
                   </div>

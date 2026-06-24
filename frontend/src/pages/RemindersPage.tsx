@@ -60,6 +60,8 @@ export default function RemindersPage() {
   function validate(): boolean {
     var errs: Record<string, string> = {}
     if (!title) errs.title = t.validation.required
+    if (!dueDate) errs.dueDate = t.validation.required
+    if (type === 'recurring' && !recurringRule) errs.recurringRule = t.validation.required
     if (!activeSpace) errs.space = t.validation.selectSpaceFirst
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -67,23 +69,27 @@ export default function RemindersPage() {
 
   async function handleAdd() {
     if (!validate()) return
-    await addReminder({
-      title,
-      description,
-      type,
-      due_date: dueDate,
-      recurring_rule: type === 'recurring' ? recurringRule : '',
-      space: activeSpace!,
-      done: false,
-      created_by: user?.id ?? '',
-    })
-    setTitle('')
-    setDescription('')
-    setErrors({})
-    setType('todo')
-    setDueDate(new Date().toISOString().split('T')[0])
-    setRecurringRule('')
-    setOpen(false)
+    try {
+      await addReminder({
+        title,
+        description,
+        type,
+        due_date: dueDate,
+        recurring_rule: type === 'recurring' ? recurringRule : '',
+        space: activeSpace!,
+        done: false,
+        created_by: user?.id ?? '',
+      })
+      setTitle('')
+      setDescription('')
+      setErrors({})
+      setType('todo')
+      setDueDate(new Date().toISOString().split('T')[0])
+      setRecurringRule('')
+      setOpen(false)
+    } catch (e) {
+      console.error('Failed to create reminder:', e)
+    }
   }
 
   function renderList(items: typeof reminders, showDoneToggle = true) {
@@ -172,7 +178,7 @@ export default function RemindersPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="type">{t.reminders.type}</Label>
-                <Select value={type} onValueChange={(v) => setType(v as ReminderType)}>
+                <Select value={type} onValueChange={(v) => { setType(v as ReminderType); setErrors({}) }}>
                   <SelectTrigger id="type">
                     <SelectValue placeholder={t.reminders.type} />
                   </SelectTrigger>
@@ -185,12 +191,13 @@ export default function RemindersPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="dueDate">{t.reminders.dueDate}</Label>
-                <Input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <Input id="dueDate" type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setErrors({}) }} />
+                {errors.dueDate && <p className="text-xs text-destructive">{errors.dueDate}</p>}
               </div>
               {type === 'recurring' && (
                 <div className="grid gap-2">
                   <Label htmlFor="rule">{t.reminders.recurringRule}</Label>
-                  <Select value={recurringRule} onValueChange={setRecurringRule}>
+                  <Select value={recurringRule} onValueChange={(v) => { setRecurringRule(v); setErrors({}) }}>
                     <SelectTrigger id="rule">
                       <SelectValue placeholder={t.reminders.recurringRule} />
                     </SelectTrigger>

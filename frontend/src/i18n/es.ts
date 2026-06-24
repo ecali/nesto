@@ -83,6 +83,7 @@ export const es = {
     selectDay: 'Seleccionar un día',
     appointmentTitle: 'Título de la cita',
     appointmentDesc: 'Descripción (opcional)',
+    date: 'Fecha',
   },
   reminders: {
     title: 'Recordatorios',

@@ -83,6 +83,7 @@ export const en = {
     selectDay: 'Select a day',
     appointmentTitle: 'Appointment title',
     appointmentDesc: 'Description (optional)',
+    date: 'Date',
   },
   reminders: {
     title: 'Reminders',
