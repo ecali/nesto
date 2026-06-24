@@ -202,11 +202,14 @@ export default function CalendarPage() {
             <p className="text-muted-foreground py-8 text-center">{t.calendar.noAppointments}</p>
           ) : (
             <div className="space-y-2">
-              {[...appointments].sort((a, b) => a.date.localeCompare(b.date)).map((a) => (
+              {[...appointments].filter((a) => a.date).sort((a, b) => a.date.localeCompare(b.date)).map((a) => {
+                var d = new Date(a.date + 'T12:00:00')
+                if (isNaN(d.getTime())) return null
+                return (
                 <div key={a.id} className="flex items-center justify-between rounded-lg border p-3 cursor-pointer" onClick={() => { setDetailAppt(a); setDetailOpen(true) }}>
                   <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
                     <div className="text-center min-w-[3rem]">
-                      <p className="text-sm font-semibold">{format(new Date(a.date + 'T12:00:00'), 'd MMM', { locale: dateLocale(locale) })}</p>
+                      <p className="text-sm font-semibold">{format(d, 'd MMM', { locale: dateLocale(locale) })}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">{a.title}</p>
@@ -217,7 +220,8 @@ export default function CalendarPage() {
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
-              ))}
+              )
+})}
             </div>
           )}
         </CardContent>
