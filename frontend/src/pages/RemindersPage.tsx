@@ -22,6 +22,7 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
+import { SpaceSelector } from '@/components/space-selector'
 import type { ReminderType } from '@/types'
 
 const typeIcons = {
@@ -46,6 +47,7 @@ export default function RemindersPage() {
   const [type, setType] = useState<ReminderType>('todo')
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0])
   const [recurringRule, setRecurringRule] = useState('')
+  const [space, setSpace] = useState('_none')
 
   useEffect(() => {
     fetchReminders()
@@ -62,6 +64,7 @@ export default function RemindersPage() {
       type,
       due_date: dueDate,
       recurring_rule: type === 'recurring' ? recurringRule : '',
+      space: space === '_none' ? undefined : space,
       done: false,
       created_by: user?.id ?? '',
     })
@@ -70,6 +73,7 @@ export default function RemindersPage() {
     setType('todo')
     setDueDate(new Date().toISOString().split('T')[0])
     setRecurringRule('')
+    setSpace('_none')
     setOpen(false)
   }
 
@@ -182,6 +186,7 @@ export default function RemindersPage() {
                   </Select>
                 </div>
               )}
+              <SpaceSelector value={space} onValueChange={setSpace} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>

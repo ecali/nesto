@@ -15,6 +15,7 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
+import { SpaceSelector } from '@/components/space-selector'
 
 export default function CalendarPage() {
   const { t, locale } = useTranslation()
@@ -26,6 +27,7 @@ export default function CalendarPage() {
   const [time, setTime] = useState('')
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState('60')
+  const [space, setSpace] = useState('_none')
 
   useEffect(() => {
     fetchAppointments()
@@ -42,12 +44,14 @@ export default function CalendarPage() {
       date: selectedDateStr,
       time,
       duration: parseInt(duration),
+      space: space === '_none' ? undefined : space,
       created_by: user?.id ?? '',
     })
     setTitle('')
     setTime('')
     setDescription('')
     setDuration('60')
+    setSpace('_none')
     setOpen(false)
   }
 
@@ -89,6 +93,7 @@ export default function CalendarPage() {
                   <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} />
                 </div>
               </div>
+              <SpaceSelector value={space} onValueChange={setSpace} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>

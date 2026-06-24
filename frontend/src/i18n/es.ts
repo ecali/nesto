@@ -126,5 +126,9 @@ export const es = {
     error: 'Algo salió mal',
     success: 'Operación exitosa',
     confirmDelete: '¿Estás seguro de eliminar?',
+    noSpace: 'Sin espacio',
+    selectSpace: 'Seleccionar espacio',
+    createSpace: 'Crear espacio',
+    spaceName: 'Nombre del espacio',
   },
 } as const

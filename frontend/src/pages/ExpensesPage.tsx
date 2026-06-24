@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +18,8 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
+import { SpaceSelector } from '@/components/space-selector'
+import type { ExpenseType } from '@/types'
 
 const defaultCategories = [
   { value: 'alimentari', label: 'Alimentari' },
@@ -40,6 +42,8 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [expenseType, setExpenseType] = useState<ExpenseType>('expense')
+  const [space, setSpace] = useState('_none')
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7))
 
   useEffect(() => {
@@ -47,8 +51,9 @@ export default function ExpensesPage() {
   }, [fetchExpenses])
 
   const filtered = expenses.filter((e) => e.date.startsWith(filterMonth))
-
-  const total = filtered.reduce((acc, e) => acc + e.amount, 0)
+  const totalExpenses = filtered.filter((e) => e.type !== 'income').reduce((acc, e) => acc + e.amount, 0)
+  const totalIncome = filtered.filter((e) => e.type === 'income').reduce((acc, e) => acc + e.amount, 0)
+  const netBalance = totalIncome - totalExpenses
 
   const byCategory = filtered.reduce<Record<string, number>>((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + e.amount
@@ -61,12 +66,16 @@ export default function ExpensesPage() {
       amount: parseFloat(amount),
       category,
       description,
+      type: expenseType,
       date,
+      space: space === '_none' ? undefined : space,
       paid_by: user?.id ?? '',
     })
     setAmount('')
     setCategory('')
     setDescription('')
+    setExpenseType('expense')
+    setSpace('_none')
     setDate(new Date().toISOString().split('T')[0])
     setOpen(false)
   }
@@ -91,9 +100,23 @@ export default function ExpensesPage() {
               <DialogDescription>{t.expenses.addExpense}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="amount">{t.expenses.amount}</Label>
-                <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="expenseType">{t.expenses.type}</Label>
+                  <Select value={expenseType} onValueChange={(v) => setExpenseType(v as ExpenseType)}>
+                    <SelectTrigger id="expenseType">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="expense">{t.expenses.expense}</SelectItem>
+                      <SelectItem value="income">{t.expenses.income}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="amount">{t.expenses.amount}</Label>
+                  <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="category">{t.expenses.category}</Label>
@@ -116,6 +139,7 @@ export default function ExpensesPage() {
                 <Label htmlFor="date">{t.expenses.date}</Label>
                 <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
+              <SpaceSelector value={space} onValueChange={setSpace} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
@@ -136,8 +160,23 @@ export default function ExpensesPage() {
           />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-primary">&euro;{total.toFixed(2)}</div>
-          <p className="text-sm text-muted-foreground">{filtered.length} {t.expenses.expensesInMonth}</p>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">{t.expenses.expense}</p>
+              <p className="text-2xl font-bold text-destructive">&euro;{totalExpenses.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t.expenses.income}</p>
+              <p className="text-2xl font-bold text-emerald-500">&euro;{totalIncome.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t.expenses.netBalance}</p>
+              <p className={`text-2xl font-bold ${netBalance >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+                &euro;{netBalance.toFixed(2)}
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">{filtered.length} {t.expenses.expensesInMonth}</p>
           {Object.keys(byCategory).length > 0 && (
             <div className="mt-4 space-y-2">
               {Object.entries(byCategory)
@@ -146,7 +185,7 @@ export default function ExpensesPage() {
                   <div key={cat} className="flex items-center justify-between text-sm">
                     <span>{defaultCategories.find((c) => c.value === cat)?.label || cat}</span>
                     <div className="flex items-center gap-2">
-                      <div className="h-2 rounded-full bg-primary/20" style={{ width: `${(tot / total) * 100}%` }} />
+                      <div className="h-2 rounded-full bg-primary/20" style={{ width: `${(tot / Math.max(totalExpenses, totalIncome, 1)) * 100}%` }} />
                       <span className="font-medium w-16 text-right">&euro;{tot.toFixed(2)}</span>
                     </div>
                   </div>
@@ -164,6 +203,7 @@ export default function ExpensesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>{t.expenses.type}</TableHead>
                 <TableHead>{t.expenses.date}</TableHead>
                 <TableHead>{t.expenses.description}</TableHead>
                 <TableHead>{t.expenses.category}</TableHead>
@@ -174,13 +214,20 @@ export default function ExpensesPage() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                     {t.expenses.noExpenses}
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((e) => (
                   <TableRow key={e.id}>
+                    <TableCell>
+                      {e.type === 'income' ? (
+                        <ArrowUpCircle className="size-4 text-emerald-500" />
+                      ) : (
+                        <ArrowDownCircle className="size-4 text-destructive" />
+                      )}
+                    </TableCell>
                     <TableCell>{format(new Date(e.date), 'd MMM', { locale: dateLocale(locale) })}</TableCell>
                     <TableCell className="font-medium">{e.description}</TableCell>
                     <TableCell>
@@ -188,7 +235,9 @@ export default function ExpensesPage() {
                         {defaultCategories.find((c) => c.value === e.category)?.label || e.category}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right font-semibold">&euro;{e.amount.toFixed(2)}</TableCell>
+                    <TableCell className={`text-right font-semibold ${e.type === 'income' ? 'text-emerald-500' : ''}`}>
+                      {e.type === 'income' ? '+' : '–'}&euro;{e.amount.toFixed(2)}
+                    </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteExpense(e.id)}>
                         <Trash2 className="size-4" />

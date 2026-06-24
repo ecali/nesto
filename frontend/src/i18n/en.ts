@@ -126,5 +126,9 @@ export const en = {
     error: 'Something went wrong',
     success: 'Success',
     confirmDelete: 'Are you sure you want to delete this?',
+    noSpace: 'No space',
+    selectSpace: 'Select space',
+    createSpace: 'Create space',
+    spaceName: 'Space name',
   },
 } as const

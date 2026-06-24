@@ -126,5 +126,9 @@ export const it = {
     error: 'Qualcosa è andato storto',
     success: 'Operazione completata',
     confirmDelete: 'Sei sicuro di voler eliminare?',
+    noSpace: 'Nessuno spazio',
+    selectSpace: 'Seleziona spazio',
+    createSpace: 'Crea spazio',
+    spaceName: 'Nome spazio',
   },
 } as const
