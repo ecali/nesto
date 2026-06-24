@@ -1,10 +1,14 @@
+export type ExpenseType = 'expense' | 'income'
+
 export interface Expense {
   id: string
   amount: number
   category: string
   description: string
+  type?: ExpenseType
   paid_by: string
   date: string
+  space?: string
   created: string
   updated: string
 }
@@ -27,6 +31,7 @@ export interface Appointment {
   time: string
   duration: number
   created_by: string
+  space?: string
   created: string
   updated: string
 }
@@ -42,6 +47,7 @@ export interface Reminder {
   recurring_rule: string
   done: boolean
   created_by: string
+  space?: string
   created: string
   updated: string
 }
@@ -51,6 +57,18 @@ export interface User {
   email: string
   name: string
   avatar: string
+  role?: 'user' | 'admin'
+  language?: 'en' | 'it' | 'es'
+  created: string
+  updated: string
+}
+
+export interface Space {
+  id: string
+  name: string
+  type: 'private' | 'public'
+  created_by: string
+  members: string[]
   created: string
   updated: string
 }

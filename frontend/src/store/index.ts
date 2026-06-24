@@ -1,18 +1,20 @@
 import { create } from 'zustand'
 import { pb } from '@/lib/pocketbase'
-import type { Expense, Appointment, Reminder, Category } from '@/types'
+import type { Expense, Appointment, Reminder, Category, Space } from '@/types'
 
 interface NestoStore {
   expenses: Expense[]
   appointments: Appointment[]
   reminders: Reminder[]
   categories: Category[]
+  spaces: Space[]
   loading: boolean
 
   fetchExpenses: () => Promise<void>
   fetchAppointments: () => Promise<void>
   fetchReminders: () => Promise<void>
   fetchCategories: () => Promise<void>
+  fetchSpaces: () => Promise<void>
   addExpense: (data: Omit<Expense, 'id' | 'created' | 'updated'>) => Promise<void>
   addAppointment: (data: Omit<Appointment, 'id' | 'created' | 'updated'>) => Promise<void>
   addReminder: (data: Omit<Reminder, 'id' | 'created' | 'updated'>) => Promise<void>
@@ -27,6 +29,7 @@ export const useStore = create<NestoStore>((set, get) => ({
   appointments: [],
   reminders: [],
   categories: [],
+  spaces: [],
   loading: false,
 
   fetchExpenses: async () => {
@@ -47,6 +50,11 @@ export const useStore = create<NestoStore>((set, get) => ({
   fetchCategories: async () => {
     const records = await pb.collection('categories').getFullList<Category>({ sort: 'name' })
     set({ categories: records })
+  },
+
+  fetchSpaces: async () => {
+    const records = await pb.collection('spaces').getFullList<Space>({ sort: 'name' })
+    set({ spaces: records })
   },
 
   addExpense: async (data) => {
