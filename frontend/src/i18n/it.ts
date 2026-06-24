@@ -132,4 +132,9 @@ export const it = {
     spaceName: 'Nome spazio',
     createCategory: 'Crea categoria',
   },
+  validation: {
+    required: 'Campo obbligatorio',
+    invalidNumber: 'Inserisci un numero valido',
+    selectSpaceFirst: 'Seleziona prima uno spazio',
+  },
 } as const

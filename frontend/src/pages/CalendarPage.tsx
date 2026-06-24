@@ -26,6 +26,7 @@ export default function CalendarPage() {
   const [time, setTime] = useState('')
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState('60')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchAppointments(activeSpace ?? undefined)
@@ -34,21 +35,29 @@ export default function CalendarPage() {
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : ''
   const dayAppointments = appointments.filter((a) => a.date === selectedDateStr)
 
+  function validate(): boolean {
+    var errs: Record<string, string> = {}
+    if (!title) errs.title = t.validation.required
+    if (!activeSpace) errs.space = t.validation.selectSpaceFirst
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   async function handleAdd() {
-    if (!title || !date) return
-    if (!activeSpace) return
+    if (!validate()) return
     await addAppointment({
       title,
       description,
       date: selectedDateStr,
       time,
       duration: parseInt(duration),
-      space: activeSpace,
+      space: activeSpace!,
       created_by: user?.id ?? '',
     })
     setTitle('')
     setTime('')
     setDescription('')
+    setErrors({})
     setDuration('60')
     setOpen(false)
   }
@@ -75,7 +84,8 @@ export default function CalendarPage() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">{t.calendar.titleField}</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.calendar.appointmentTitle} />
+                <Input id="title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors({}) }} placeholder={t.calendar.appointmentTitle} />
+                {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="desc">{t.calendar.descriptionField}</Label>
@@ -93,8 +103,9 @@ export default function CalendarPage() {
               </div>
             </div>
             <DialogFooter>
+              {errors.space && <p className="text-xs text-destructive">{errors.space}</p>}
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
-              <Button onClick={handleAdd} disabled={!activeSpace}>{t.app.save}</Button>
+              <Button onClick={handleAdd}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -22,16 +22,25 @@ export default function SpacesPage() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [type, setType] = useState<'private' | 'public'>('private')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchSpaces()
   }, [fetchSpaces])
 
+  function validate(): boolean {
+    var errs: Record<string, string> = {}
+    if (!name) errs.name = t.validation.required
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   async function handleCreate() {
-    if (!name) return
+    if (!validate()) return
     await addSpace(name, type)
     setName('')
     setType('private')
+    setErrors({})
     setOpen(false)
   }
 
@@ -100,7 +109,8 @@ export default function SpacesPage() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>{t.common.spaceName}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t.common.spaceName} />
+              <Input value={name} onChange={(e) => { setName(e.target.value); setErrors({}) }} placeholder={t.common.spaceName} />
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="grid gap-2">
               <Label>{t.common.selectSpace}</Label>

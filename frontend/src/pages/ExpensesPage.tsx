@@ -33,6 +33,7 @@ export default function ExpensesPage() {
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7))
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [catName, setCatName] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchExpenses(activeSpace ?? undefined)
@@ -52,30 +53,46 @@ export default function ExpensesPage() {
     return acc
   }, {})
 
+  function validate(): boolean {
+    var errs: Record<string, string> = {}
+    if (!amount || parseFloat(amount) <= 0) errs.amount = t.validation.invalidNumber
+    if (!category) errs.category = t.validation.required
+    if (!description) errs.description = t.validation.required
+    if (!activeSpace) errs.space = t.validation.selectSpaceFirst
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   async function handleAdd() {
-    if (!amount || !category || !description) return
-    if (!activeSpace) return
+    if (!validate()) return
     await addExpense({
       amount: parseFloat(amount),
       category,
       description,
       type: expenseType,
       date,
-      space: activeSpace,
+      space: activeSpace!,
       paid_by: user?.id ?? '',
     })
     setAmount('')
     setCategory('')
     setDescription('')
+    setErrors({})
     setExpenseType('expense')
     setDate(new Date().toISOString().split('T')[0])
     setOpen(false)
   }
 
+  const [catErrors, setCatErrors] = useState<Record<string, string>>({})
+
   async function handleAddCategory() {
-    if (!catName) return
+    var errs: Record<string, string> = {}
+    if (!catName.trim()) errs.name = t.validation.required
+    setCatErrors(errs)
+    if (Object.keys(errs).length > 0) return
     await addCategory({ name: catName, icon: '', color: '#6b7280', type: expenseType })
     setCatName('')
+    setCatErrors({})
     setCatDialogOpen(false)
   }
 
@@ -114,13 +131,14 @@ export default function ExpensesPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="amount">{t.expenses.amount}</Label>
-                  <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+                  <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => { setAmount(e.target.value); setErrors({}) }} placeholder="0.00" />
+                  {errors.amount && <p className="text-xs text-destructive">{errors.amount}</p>}
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label>{t.expenses.category}</Label>
                 <div className="flex gap-2">
-                  <Select value={category} onValueChange={setCategory}>
+                  <Select value={category} onValueChange={(v) => { setCategory(v); setErrors({}) }}>
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder={t.expenses.selectCategory} />
                     </SelectTrigger>
@@ -134,10 +152,12 @@ export default function ExpensesPage() {
                     <FolderPlus className="size-4" />
                   </Button>
                 </div>
+                {errors.category && <p className="text-xs text-destructive">{errors.category}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">{t.expenses.description}</Label>
-                <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t.expenses.whatDidYouBuy} />
+                <Input id="description" value={description} onChange={(e) => { setDescription(e.target.value); setErrors({}) }} placeholder={t.expenses.whatDidYouBuy} />
+                {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="date">{t.expenses.date}</Label>
@@ -145,8 +165,9 @@ export default function ExpensesPage() {
               </div>
             </div>
             <DialogFooter>
+              {errors.space && <p className="text-xs text-destructive">{errors.space}</p>}
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
-              <Button onClick={handleAdd} disabled={!activeSpace}>{t.app.save}</Button>
+              <Button onClick={handleAdd}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -160,7 +181,8 @@ export default function ExpensesPage() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>{t.expenses.category}</Label>
-              <Input value={catName} onChange={(e) => setCatName(e.target.value)} placeholder={t.expenses.whatDidYouBuy} />
+              <Input value={catName} onChange={(e) => { setCatName(e.target.value); setCatErrors({}) }} placeholder={t.expenses.whatDidYouBuy} />
+              {catErrors.name && <p className="text-xs text-destructive">{catErrors.name}</p>}
             </div>
           </div>
           <DialogFooter>

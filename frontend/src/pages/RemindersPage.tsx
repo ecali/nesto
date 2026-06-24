@@ -46,6 +46,7 @@ export default function RemindersPage() {
   const [type, setType] = useState<ReminderType>('todo')
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0])
   const [recurringRule, setRecurringRule] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchReminders(activeSpace ?? undefined)
@@ -54,21 +55,29 @@ export default function RemindersPage() {
   const activeReminders = reminders.filter((r) => !r.done)
   const doneReminders = reminders.filter((r) => r.done)
 
+  function validate(): boolean {
+    var errs: Record<string, string> = {}
+    if (!title) errs.title = t.validation.required
+    if (!activeSpace) errs.space = t.validation.selectSpaceFirst
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   async function handleAdd() {
-    if (!title) return
-    if (!activeSpace) return
+    if (!validate()) return
     await addReminder({
       title,
       description,
       type,
       due_date: dueDate,
       recurring_rule: type === 'recurring' ? recurringRule : '',
-      space: activeSpace,
+      space: activeSpace!,
       done: false,
       created_by: user?.id ?? '',
     })
     setTitle('')
     setDescription('')
+    setErrors({})
     setType('todo')
     setDueDate(new Date().toISOString().split('T')[0])
     setRecurringRule('')
@@ -143,7 +152,8 @@ export default function RemindersPage() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">{t.reminders.titleField}</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.reminders.titleField} />
+                <Input id="title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors({}) }} placeholder={t.reminders.titleField} />
+                {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="desc">{t.reminders.descriptionField}</Label>
@@ -186,6 +196,7 @@ export default function RemindersPage() {
               )}
             </div>
             <DialogFooter>
+              {errors.space && <p className="text-xs text-destructive">{errors.space}</p>}
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
               <Button onClick={handleAdd}>{t.app.save}</Button>
             </DialogFooter>
