@@ -39,20 +39,23 @@ export const useStore = create<NestoStore>((set, get) => ({
   loading: false,
 
   fetchExpenses: async (space) => {
-    const filter = space ? `space = "${space}"` : ''
-    const records = await pb.collection('expenses').getFullList<Expense>({ sort: '-date', filter: filter || undefined })
+    if (!space) { set({ expenses: [] }); return }
+    const filter = `space = "${space}"`
+    const records = await pb.collection('expenses').getFullList<Expense>({ sort: '-date', filter })
     set({ expenses: records })
   },
 
   fetchAppointments: async (space) => {
-    const filter = space ? `space = "${space}"` : ''
-    const records = await pb.collection('appointments').getFullList<Appointment>({ sort: 'date', filter: filter || undefined })
+    if (!space) { set({ appointments: [] }); return }
+    const filter = `space = "${space}"`
+    const records = await pb.collection('appointments').getFullList<Appointment>({ sort: 'date', filter })
     set({ appointments: records })
   },
 
   fetchReminders: async (space) => {
-    const filter = space ? `space = "${space}"` : ''
-    const records = await pb.collection('reminders').getFullList<Reminder>({ sort: 'due_date', filter: filter || undefined })
+    if (!space) { set({ reminders: [] }); return }
+    const filter = `space = "${space}"`
+    const records = await pb.collection('reminders').getFullList<Reminder>({ sort: 'due_date', filter })
     set({ reminders: records })
   },
 
@@ -68,7 +71,7 @@ export const useStore = create<NestoStore>((set, get) => ({
 
   setActiveSpace: (id) => {
     localStorage.setItem('nesto-active-space', id ?? '')
-    set({ activeSpace: id })
+    set({ activeSpace: id, expenses: [], appointments: [], reminders: [] })
   },
 
   addExpense: async (data) => {

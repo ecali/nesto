@@ -15,11 +15,13 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
+import { useNavigate } from 'react-router-dom'
 
 export default function CalendarPage() {
   const { t, locale } = useTranslation()
   const { appointments, activeSpace, fetchAppointments, addAppointment, deleteAppointment } = useStore()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState<Date>(new Date())
   const [title, setTitle] = useState('')
@@ -64,6 +66,15 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
+      {!activeSpace ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <p className="text-lg text-muted-foreground mb-4">{t.common.selectSpace}</p>
+            <Button onClick={() => navigate('/spaces')}>{t.common.createSpace}</Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t.calendar.title}</h1>
@@ -153,6 +164,8 @@ export default function CalendarPage() {
           </CardContent>
         </Card>
       </div>
+        </>
+      )}
     </div>
   )
 }

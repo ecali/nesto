@@ -22,6 +22,7 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
+import { useNavigate } from 'react-router-dom'
 import type { ReminderType } from '@/types'
 
 const typeIcons = {
@@ -34,6 +35,7 @@ export default function RemindersPage() {
   const { t, locale } = useTranslation()
   const { reminders, activeSpace, fetchReminders, addReminder, toggleReminder, deleteReminder } = useStore()
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   const typeLabels: Record<string, string> = {
     'todo': t.reminders.todo,
@@ -132,6 +134,15 @@ export default function RemindersPage() {
 
   return (
     <div className="space-y-6">
+      {!activeSpace ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <p className="text-lg text-muted-foreground mb-4">{t.common.selectSpace}</p>
+            <Button onClick={() => navigate('/spaces')}>{t.common.createSpace}</Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t.reminders.title}</h1>
@@ -226,6 +237,8 @@ export default function RemindersPage() {
           </Card>
         </TabsContent>
       </Tabs>
+        </>
+      )}
     </div>
   )
 }

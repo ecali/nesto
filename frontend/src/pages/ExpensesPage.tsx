@@ -98,6 +98,15 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-6">
+      {!activeSpace ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <p className="text-lg text-muted-foreground mb-4">{t.common.selectSpace}</p>
+            <Button onClick={() => navigate('/spaces')}>{t.common.createSpace}</Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t.expenses.title}</h1>
@@ -293,6 +302,8 @@ export default function ExpensesPage() {
           </Table>
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   )
 }
