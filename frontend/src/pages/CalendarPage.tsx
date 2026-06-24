@@ -36,13 +36,14 @@ export default function CalendarPage() {
 
   async function handleAdd() {
     if (!title || !date) return
+    if (!activeSpace) return
     await addAppointment({
       title,
       description,
       date: selectedDateStr,
       time,
       duration: parseInt(duration),
-      space: activeSpace ?? undefined,
+      space: activeSpace,
       created_by: user?.id ?? '',
     })
     setTitle('')
@@ -93,7 +94,7 @@ export default function CalendarPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
-              <Button onClick={handleAdd}>{t.app.save}</Button>
+              <Button onClick={handleAdd} disabled={!activeSpace}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

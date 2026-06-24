@@ -54,13 +54,14 @@ export default function ExpensesPage() {
 
   async function handleAdd() {
     if (!amount || !category || !description) return
+    if (!activeSpace) return
     await addExpense({
       amount: parseFloat(amount),
       category,
       description,
       type: expenseType,
       date,
-      space: activeSpace ?? undefined,
+      space: activeSpace,
       paid_by: user?.id ?? '',
     })
     setAmount('')
@@ -145,7 +146,7 @@ export default function ExpensesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>
-              <Button onClick={handleAdd}>{t.app.save}</Button>
+              <Button onClick={handleAdd} disabled={!activeSpace}>{t.app.save}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -56,13 +56,14 @@ export default function RemindersPage() {
 
   async function handleAdd() {
     if (!title) return
+    if (!activeSpace) return
     await addReminder({
       title,
       description,
       type,
       due_date: dueDate,
       recurring_rule: type === 'recurring' ? recurringRule : '',
-      space: activeSpace ?? undefined,
+      space: activeSpace,
       done: false,
       created_by: user?.id ?? '',
     })
