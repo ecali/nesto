@@ -1,64 +1,79 @@
 # Nesto
 
-App per la gestione familiare: spese, calendario e promemoria.
+Household management app for shared expenses, calendar appointments, and reminders.
 
 ## Stack
 
-- **Frontend**: React + TypeScript + Vite + Tailwind v4 + shadcn/ui
+- **Frontend**: React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui
 - **Backend**: PocketBase (SQLite + Auth + Realtime)
 - **State**: Zustand
 - **Routing**: React Router v7
 
-## Struttura
+## Project Structure
 
 ```
 nesto/
-  frontend/          # App React
-  pocketbase/        # Backend PocketBase
-    pb_migrations/   # Migrazioni schema
-    pb_hooks/        # Custom hooks (opzionale)
-    schema/          # Schema JSON esportato
+  frontend/          # React app
+  pocketbase/        # PocketBase backend
+    pb_migrations/   # Schema migrations
+    pb_hooks/        # Custom hooks (optional)
+    schema/          # Exported schema JSON
+  .github/workflows/ # CI pipeline
 ```
 
-## Setup locale
+## Local Development
 
 ### Backend (PocketBase)
 
 ```bash
-# Scarica PocketBase
 cd pocketbase
-
-# macOS (ARM)
-wget https://github.com/pocketbase/pocketbase/releases/download/v0.25.2/pocketbase_0.25.2_darwin_arm64.zip
-unzip pocketbase_0.25.2_darwin_arm64.zip
-
-# Avvia
+chmod +x download.sh && ./download.sh   # Download PocketBase binary
 ./pocketbase serve --http=0.0.0.0:8090
 ```
 
-Poi apri http://127.0.0.1:8090/_/ per l'admin UI.
+Open http://127.0.0.1:8090/_/ for the admin UI.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
+cp .env.example .env    # Edit VITE_PB_URL if needed
 npm run dev
 ```
 
-Apri http://localhost:5173
+Open http://localhost:5173.
 
-## Deploy su Pockethost.io
+### Both at once (from repo root)
 
-1. Crea account su https://pockethost.io
-2. Crea un nuovo progetto
-3. Carica le migrazioni da `pocketbase/pb_migrations/`
-4. Imposta `VITE_PB_URL` con l'URL del progetto
-
-## Variabili d'ambiente
-
-Copia `.env.example` in `.env`:
-
+```bash
+npm run setup:be    # Download PocketBase (first time only)
+npm run dev         # Starts both backend and frontend
 ```
-VITE_PB_URL=http://127.0.0.1:8090
-```
+
+## Deploy
+
+### 1. Backend — Pockethost.io (free)
+
+1. Create an account at https://pockethost.io
+2. Create a new project (e.g., `nesto`)
+3. Upload the folder `pocketbase/pb_migrations/` to apply schema migrations
+4. Note your project URL: `https://<name>.pockethost.io`
+
+### 2. Frontend — Vercel (free, auto-deploy on push)
+
+1. Push this repo to GitHub
+2. Go to https://vercel.com/new
+3. Import the `ecali/nesto` repository
+4. Vercel will auto-detect the `vercel.json` config
+5. Add environment variable:
+   - `VITE_PB_URL` = `https://<name>.pockethost.io` (your Pockethost URL)
+6. Click **Deploy**
+
+Every push to `main` triggers a new deploy automatically.
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_PB_URL` | `http://127.0.0.1:8090` | PocketBase server URL |
