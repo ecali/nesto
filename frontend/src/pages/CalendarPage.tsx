@@ -193,6 +193,36 @@ export default function CalendarPage() {
         </Card>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.calendar.title} ({appointments.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {appointments.length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">{t.calendar.noAppointments}</p>
+          ) : (
+            <div className="space-y-2">
+              {[...appointments].sort((a, b) => a.date.localeCompare(b.date)).map((a) => (
+                <div key={a.id} className="flex items-center justify-between rounded-lg border p-3 cursor-pointer" onClick={() => { setDetailAppt(a); setDetailOpen(true) }}>
+                  <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
+                    <div className="text-center min-w-[3rem]">
+                      <p className="text-sm font-semibold">{format(new Date(a.date + 'T12:00:00'), 'd MMM', { locale: dateLocale(locale) })}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{a.title}</p>
+                      <p className="text-xs text-muted-foreground">{a.time || ''}{a.description ? ' — ' + a.description : ''}</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={(ev) => { ev.stopPropagation(); deleteAppointment(a.id) }}>
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent>
           <DialogHeader>
