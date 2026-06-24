@@ -18,12 +18,11 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
-import { SpaceSelector } from '@/components/space-selector'
 import type { ExpenseType } from '@/types'
 
 export default function ExpensesPage() {
   const { t, locale } = useTranslation()
-  const { expenses, categories, fetchExpenses, fetchCategories, addExpense, addCategory, deleteExpense } = useStore()
+  const { expenses, categories, activeSpace, fetchExpenses, fetchCategories, addExpense, addCategory, deleteExpense } = useStore()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [amount, setAmount] = useState('')
@@ -31,15 +30,14 @@ export default function ExpensesPage() {
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [expenseType, setExpenseType] = useState<ExpenseType>('expense')
-  const [space, setSpace] = useState('_none')
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7))
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [catName, setCatName] = useState('')
 
   useEffect(() => {
-    fetchExpenses()
+    fetchExpenses(activeSpace ?? undefined)
     fetchCategories()
-  }, [fetchExpenses, fetchCategories])
+  }, [fetchExpenses, fetchCategories, activeSpace])
 
   const filtered = expenses.filter((e) => e.date.startsWith(filterMonth))
   const totalExpenses = filtered.filter((e) => e.type !== 'income').reduce((acc, e) => acc + e.amount, 0)
@@ -62,14 +60,13 @@ export default function ExpensesPage() {
       description,
       type: expenseType,
       date,
-      space: space === '_none' ? undefined : space,
+      space: activeSpace ?? undefined,
       paid_by: user?.id ?? '',
     })
     setAmount('')
     setCategory('')
     setDescription('')
     setExpenseType('expense')
-    setSpace('_none')
     setDate(new Date().toISOString().split('T')[0])
     setOpen(false)
   }
@@ -145,7 +142,6 @@ export default function ExpensesPage() {
                 <Label htmlFor="date">{t.expenses.date}</Label>
                 <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
-              <SpaceSelector value={space} onValueChange={setSpace} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.app.cancel}</Button>

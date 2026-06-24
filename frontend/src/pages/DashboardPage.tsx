@@ -8,13 +8,13 @@ import { dateLocale } from '@/lib/date-locale'
 
 export default function DashboardPage() {
   const { t, locale } = useTranslation()
-  const { expenses, appointments, reminders, fetchExpenses, fetchAppointments, fetchReminders, loading } = useStore()
+  const { expenses, appointments, reminders, activeSpace, fetchExpenses, fetchAppointments, fetchReminders, loading } = useStore()
 
   useEffect(() => {
-    fetchExpenses()
-    fetchAppointments()
-    fetchReminders()
-  }, [fetchExpenses, fetchAppointments, fetchReminders])
+    fetchExpenses(activeSpace ?? undefined)
+    fetchAppointments(activeSpace ?? undefined)
+    fetchReminders(activeSpace ?? undefined)
+  }, [fetchExpenses, fetchAppointments, fetchReminders, activeSpace])
 
   const totalMonth = expenses
     .filter((e) => {

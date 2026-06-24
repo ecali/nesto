@@ -12,6 +12,7 @@ import ExpensesPage from '@/pages/ExpensesPage'
 import CalendarPage from '@/pages/CalendarPage'
 import RemindersPage from '@/pages/RemindersPage'
 import SettingsPage from '@/pages/SettingsPage'
+import SpacesPage from '@/pages/SpacesPage'
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/reminders" element={<RemindersPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/spaces" element={<SpacesPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
