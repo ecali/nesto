@@ -16,7 +16,7 @@ import { useTranslation } from '@/i18n'
 import { pb } from '@/lib/pocketbase'
 
 export default function SpacesPage() {
-  const { spaces, fetchSpaces, addSpace, setActiveSpace } = useStore()
+  const { spaces, fetchSpaces, addSpace, deleteSpace, setActiveSpace } = useStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -75,7 +75,7 @@ export default function SpacesPage() {
                     {s.name}
                   </CardTitle>
                   {isOwner && (
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation() }}>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={function(e) { e.stopPropagation(); deleteSpace(s.id) }}>
                       <Trash2 className="size-4" />
                     </Button>
                   )}
