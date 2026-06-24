@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
-migrate((app) => {
-  const spaces = new Collection({
+migrate(function(app) {
+  var spaces = new Collection({
     name: "spaces",
     type: "base",
     listRule: "@request.auth.id != ''",
@@ -17,41 +17,68 @@ migrate((app) => {
   })
   app.save(spaces)
 
-  const expenses = app.findCollectionByNameOrId("expenses")
-  expenses.fields.add({ name: "type", type: "select", required: true, values: ["expense", "income"] })
-  expenses.fields.add({ name: "space", type: "relation", collectionId: spaces.id, maxSelect: 1 })
+  var expenses = app.findCollectionByNameOrId("expenses")
+
+  var typeField = new SelectField()
+  typeField.name = "type"
+  typeField.values = ["expense", "income"]
+  expenses.fields.add(typeField)
+
+  var spaceField = new RelationField()
+  spaceField.name = "space"
+  spaceField.collectionId = spaces.id
+  spaceField.maxSelect = 1
+  expenses.fields.add(spaceField)
+
   app.save(expenses)
 
-  const appointments = app.findCollectionByNameOrId("appointments")
-  appointments.fields.add({ name: "space", type: "relation", collectionId: spaces.id, maxSelect: 1 })
+  var appointments = app.findCollectionByNameOrId("appointments")
+  var apptSpaceField = new RelationField()
+  apptSpaceField.name = "space"
+  apptSpaceField.collectionId = spaces.id
+  apptSpaceField.maxSelect = 1
+  appointments.fields.add(apptSpaceField)
   app.save(appointments)
 
-  const reminders = app.findCollectionByNameOrId("reminders")
-  reminders.fields.add({ name: "space", type: "relation", collectionId: spaces.id, maxSelect: 1 })
+  var reminders = app.findCollectionByNameOrId("reminders")
+  var remSpaceField = new RelationField()
+  remSpaceField.name = "space"
+  remSpaceField.collectionId = spaces.id
+  remSpaceField.maxSelect = 1
+  reminders.fields.add(remSpaceField)
   app.save(reminders)
 
-  const users = app.findCollectionByNameOrId("users")
-  users.fields.add({ name: "role", type: "select", values: ["user", "admin"] })
-  users.fields.add({ name: "language", type: "select", values: ["en", "it", "es"] })
+  var users = app.findCollectionByNameOrId("users")
+
+  var roleField = new SelectField()
+  roleField.name = "role"
+  roleField.values = ["user", "admin"]
+  users.fields.add(roleField)
+
+  var langField = new SelectField()
+  langField.name = "language"
+  langField.values = ["en", "it", "es"]
+  users.fields.add(langField)
+
   app.save(users)
-}, (app) => {
-  const users = app.findCollectionByNameOrId("users")
-  users.fields.remove("role")
-  users.fields.remove("language")
+}, function(app) {
+  var users = app.findCollectionByNameOrId("users")
+  users.fields.removeByName("role")
+  users.fields.removeByName("language")
   app.save(users)
 
   app.delete(app.findCollectionByNameOrId("spaces"))
 
-  const expenses = app.findCollectionByNameOrId("expenses")
-  expenses.fields.remove("type")
-  expenses.fields.remove("space")
+  var expenses = app.findCollectionByNameOrId("expenses")
+  expenses.fields.removeByName("type")
+  expenses.fields.removeByName("space")
   app.save(expenses)
 
-  const appointments = app.findCollectionByNameOrId("appointments")
-  appointments.fields.remove("space")
+  var appointments = app.findCollectionByNameOrId("appointments")
+  appointments.fields.removeByName("space")
   app.save(appointments)
 
-  const reminders = app.findCollectionByNameOrId("reminders")
-  reminders.fields.remove("space")
+  var reminders = app.findCollectionByNameOrId("reminders")
+  reminders.fields.removeByName("space")
   app.save(reminders)
 })
