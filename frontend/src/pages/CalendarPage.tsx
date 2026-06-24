@@ -15,18 +15,22 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 export default function CalendarPage() {
   const { t, locale } = useTranslation()
   const { appointments, activeSpace, fetchAppointments, addAppointment, deleteAppointment } = useStore()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState<Date>(() => {
-    var focusDate = (location.state as Record<string, string> | null)?.focusDate
-    return focusDate ? new Date(focusDate + 'T12:00:00') : new Date()
+    var focusDate = searchParams.get('date')
+    if (focusDate) {
+      var d = new Date(focusDate + 'T12:00:00')
+      if (!isNaN(d.getTime())) return d
+    }
+    return new Date()
   })
   const [title, setTitle] = useState('')
   const [time, setTime] = useState('')
@@ -41,9 +45,10 @@ export default function CalendarPage() {
     fetchAppointments(activeSpace ?? undefined)
   }, [fetchAppointments, activeSpace])
 
-  const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : ''
+  const validDate = date && !isNaN(date.getTime()) ? date : null
+  const selectedDateStr = validDate ? format(validDate, 'yyyy-MM-dd') : ''
   const dayAppointments = appointments.filter((a) => a.date === selectedDateStr)
-  const appointmentDates = appointments.map((a) => new Date(a.date + 'T12:00:00'))
+  const appointmentDates = appointments.filter((a) => a.date).map((a) => new Date(a.date + 'T12:00:00'))
 
   function validate(): boolean {
     var errs: Record<string, string> = {}
@@ -143,7 +148,7 @@ export default function CalendarPage() {
       <div className="grid gap-6 md:grid-cols-[auto_1fr]">
         <Card>
           <CardContent className="p-3">
-            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={dateLocale(locale)} className="rounded-md"
+            <Calendar mode="single" selected={validDate ?? new Date()} onSelect={(d) => d && setDate(d)} locale={dateLocale(locale)} className="rounded-md"
               modifiers={{ hasAppointments: appointmentDates }}
               modifiersClassNames={{ hasAppointments: "font-bold" }}
             />
@@ -153,7 +158,7 @@ export default function CalendarPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {date ? format(date, 'EEEE d MMMM yyyy', { locale: dateLocale(locale) }) : t.calendar.selectDay}
+              {validDate ? format(validDate, 'EEEE d MMMM yyyy', { locale: dateLocale(locale) }) : t.calendar.selectDay}
             </CardTitle>
           </CardHeader>
           <CardContent>

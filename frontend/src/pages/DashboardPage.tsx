@@ -121,7 +121,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {appointments.slice(0, 5).map((a) => (
-                  <div key={a.id} className="flex items-center justify-between cursor-pointer" onClick={() => navigate('/calendar', { state: { focusDate: a.date } })}>
+                  <div key={a.id} className="flex items-center justify-between cursor-pointer" onClick={() => navigate('/calendar?date=' + a.date)}>
                     <div>
                       <p className="text-sm font-medium">{a.title}</p>
                       <p className="text-xs text-muted-foreground">
