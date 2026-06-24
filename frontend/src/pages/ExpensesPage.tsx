@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { Plus, Trash2, ArrowUpCircle, ArrowDownCircle, FolderPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,21 +21,9 @@ import { useAuth } from '@/hooks/use-auth'
 import { SpaceSelector } from '@/components/space-selector'
 import type { ExpenseType } from '@/types'
 
-const defaultCategories = [
-  { value: 'alimentari', label: 'Alimentari' },
-  { value: 'bollette', label: 'Bollette' },
-  { value: 'casa', label: 'Casa' },
-  { value: 'trasporti', label: 'Trasporti' },
-  { value: 'salute', label: 'Salute' },
-  { value: 'tempo-libero', label: 'Tempo libero' },
-  { value: 'abbigliamento', label: 'Abbigliamento' },
-  { value: 'ristorante', label: 'Ristorante' },
-  { value: 'altro', label: 'Altro' },
-]
-
 export default function ExpensesPage() {
   const { t, locale } = useTranslation()
-  const { expenses, fetchExpenses, addExpense, deleteExpense } = useStore()
+  const { expenses, categories, fetchExpenses, fetchCategories, addExpense, addCategory, deleteExpense } = useStore()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [amount, setAmount] = useState('')
@@ -45,15 +33,21 @@ export default function ExpensesPage() {
   const [expenseType, setExpenseType] = useState<ExpenseType>('expense')
   const [space, setSpace] = useState('_none')
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [catDialogOpen, setCatDialogOpen] = useState(false)
+  const [catName, setCatName] = useState('')
 
   useEffect(() => {
     fetchExpenses()
-  }, [fetchExpenses])
+    fetchCategories()
+  }, [fetchExpenses, fetchCategories])
 
   const filtered = expenses.filter((e) => e.date.startsWith(filterMonth))
   const totalExpenses = filtered.filter((e) => e.type !== 'income').reduce((acc, e) => acc + e.amount, 0)
   const totalIncome = filtered.filter((e) => e.type === 'income').reduce((acc, e) => acc + e.amount, 0)
   const netBalance = totalIncome - totalExpenses
+
+  const filteredCategories = categories.filter((c) => c.type === expenseType)
+  const catMap = Object.fromEntries(categories.map((c) => [c.name, c.name]))
 
   const byCategory = filtered.reduce<Record<string, number>>((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + e.amount
@@ -78,6 +72,13 @@ export default function ExpensesPage() {
     setSpace('_none')
     setDate(new Date().toISOString().split('T')[0])
     setOpen(false)
+  }
+
+  async function handleAddCategory() {
+    if (!catName) return
+    await addCategory({ name: catName, icon: '', color: '#6b7280', type: expenseType })
+    setCatName('')
+    setCatDialogOpen(false)
   }
 
   return (
@@ -119,17 +120,22 @@ export default function ExpensesPage() {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="category">{t.expenses.category}</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder={t.expenses.selectCategory} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {defaultCategories.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>{t.expenses.category}</Label>
+                <div className="flex gap-2">
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder={t.expenses.selectCategory} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => setCatDialogOpen(true)}>
+                    <FolderPlus className="size-4" />
+                  </Button>
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">{t.expenses.description}</Label>
@@ -148,6 +154,24 @@ export default function ExpensesPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.common.createCategory}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>{t.expenses.category}</Label>
+              <Input value={catName} onChange={(e) => setCatName(e.target.value)} placeholder={t.expenses.whatDidYouBuy} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCatDialogOpen(false)}>{t.app.cancel}</Button>
+            <Button onClick={handleAddCategory}>{t.app.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -183,7 +207,7 @@ export default function ExpensesPage() {
                 .sort(([, a], [, b]) => b - a)
                 .map(([cat, tot]) => (
                   <div key={cat} className="flex items-center justify-between text-sm">
-                    <span>{defaultCategories.find((c) => c.value === cat)?.label || cat}</span>
+                    <span>{catMap[cat] || cat}</span>
                     <div className="flex items-center gap-2">
                       <div className="h-2 rounded-full bg-primary/20" style={{ width: `${(tot / Math.max(totalExpenses, totalIncome, 1)) * 100}%` }} />
                       <span className="font-medium w-16 text-right">&euro;{tot.toFixed(2)}</span>
@@ -232,7 +256,7 @@ export default function ExpensesPage() {
                     <TableCell className="font-medium">{e.description}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">
-                        {defaultCategories.find((c) => c.value === e.category)?.label || e.category}
+                        {catMap[e.category] || e.category}
                       </span>
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${e.type === 'income' ? 'text-emerald-500' : ''}`}>

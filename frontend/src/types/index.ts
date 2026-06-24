@@ -18,7 +18,7 @@ export interface Category {
   name: string
   icon: string
   color: string
-  type: 'expense' | 'appointment' | 'reminder'
+  type: 'expense' | 'income' | 'appointment' | 'reminder'
   created: string
   updated: string
 }

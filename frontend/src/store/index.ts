@@ -18,6 +18,8 @@ interface NestoStore {
   addExpense: (data: Omit<Expense, 'id' | 'created' | 'updated'>) => Promise<void>
   addAppointment: (data: Omit<Appointment, 'id' | 'created' | 'updated'>) => Promise<void>
   addReminder: (data: Omit<Reminder, 'id' | 'created' | 'updated'>) => Promise<void>
+  addCategory: (data: Omit<Category, 'id' | 'created' | 'updated'>) => Promise<void>
+  addSpace: (name: string, type: 'private' | 'public') => Promise<Space>
   toggleReminder: (id: string, done: boolean) => Promise<void>
   deleteExpense: (id: string) => Promise<void>
   deleteAppointment: (id: string) => Promise<void>
@@ -70,6 +72,18 @@ export const useStore = create<NestoStore>((set, get) => ({
   addReminder: async (data) => {
     await pb.collection('reminders').create(data)
     get().fetchReminders()
+  },
+
+  addCategory: async (data) => {
+    await pb.collection('categories').create(data)
+    get().fetchCategories()
+  },
+
+  addSpace: async (name, type) => {
+    const user = pb.authStore.record
+    const record = await pb.collection('spaces').create<Space>({ name, type, created_by: user?.id, members: [user?.id] })
+    get().fetchSpaces()
+    return record
   },
 
   toggleReminder: async (id, done) => {

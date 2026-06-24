@@ -130,5 +130,6 @@ export const en = {
     selectSpace: 'Select space',
     createSpace: 'Create space',
     spaceName: 'Space name',
+    createCategory: 'Create category',
   },
 } as const
