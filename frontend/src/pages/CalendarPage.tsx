@@ -15,21 +15,27 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 export default function CalendarPage() {
   const { t, locale } = useTranslation()
   const { appointments, activeSpace, fetchAppointments, addAppointment, deleteAppointment } = useStore()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [open, setOpen] = useState(false)
-  const [date, setDate] = useState<Date>(new Date())
+  const [date, setDate] = useState<Date>(() => {
+    var focusDate = (location.state as Record<string, string> | null)?.focusDate
+    return focusDate ? new Date(focusDate + 'T12:00:00') : new Date()
+  })
   const [title, setTitle] = useState('')
   const [time, setTime] = useState('')
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState('60')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apptDate, setApptDate] = useState(new Date().toISOString().split('T')[0])
+  const [detailAppt, setDetailAppt] = useState<typeof appointments[0] | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   useEffect(() => {
     fetchAppointments(activeSpace ?? undefined)
@@ -37,6 +43,7 @@ export default function CalendarPage() {
 
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : ''
   const dayAppointments = appointments.filter((a) => a.date === selectedDateStr)
+  const appointmentDates = appointments.map((a) => new Date(a.date + 'T12:00:00'))
 
   function validate(): boolean {
     var errs: Record<string, string> = {}
@@ -136,7 +143,10 @@ export default function CalendarPage() {
       <div className="grid gap-6 md:grid-cols-[auto_1fr]">
         <Card>
           <CardContent className="p-3">
-            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={dateLocale(locale)} className="rounded-md" />
+            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={dateLocale(locale)} className="rounded-md"
+              modifiers={{ hasAppointments: appointmentDates }}
+              modifiersClassNames={{ hasAppointments: "font-bold" }}
+            />
           </CardContent>
         </Card>
 
@@ -152,7 +162,7 @@ export default function CalendarPage() {
             ) : (
               <div className="space-y-3">
                 {dayAppointments.map((a) => (
-                  <div key={a.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div key={a.id} className="flex items-center justify-between rounded-lg border p-4 cursor-pointer" onClick={() => { setDetailAppt(a); setDetailOpen(true) }}>
                     <div className="grid grid-cols-[auto_1fr] gap-4 items-start">
                       {a.time ? (
                         <div className="text-center min-w-[4rem]">
@@ -167,7 +177,7 @@ export default function CalendarPage() {
                         {a.description && <p className="text-sm text-muted-foreground">{a.description}</p>}
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={() => deleteAppointment(a.id)}>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={(ev) => { ev.stopPropagation(); deleteAppointment(a.id) }}>
                       <Trash2 className="size-4" />
                     </Button>
                   </div>
@@ -177,6 +187,48 @@ export default function CalendarPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{detailAppt?.title}</DialogTitle>
+            <DialogDescription>{t.calendar.appointmentDesc}</DialogDescription>
+          </DialogHeader>
+          {detailAppt && (
+            <div className="grid gap-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t.calendar.date}</span>
+                <span>{detailAppt.date}</span>
+              </div>
+              {detailAppt.time && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t.calendar.time}</span>
+                  <span>{detailAppt.time}</span>
+                </div>
+              )}
+              {detailAppt.duration && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t.calendar.duration}</span>
+                  <span>{detailAppt.duration} min</span>
+                </div>
+              )}
+              {detailAppt.description && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t.calendar.descriptionField}</span>
+                  <span>{detailAppt.description}</span>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="destructive" onClick={() => { if (detailAppt) deleteAppointment(detailAppt.id); setDetailOpen(false) }}>
+              <Trash2 className="size-4" />
+              {t.app.delete}
+            </Button>
+            <Button variant="outline" onClick={() => setDetailOpen(false)}>{t.app.close}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
         </>
       )}
     </div>

@@ -18,12 +18,14 @@ import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
 import { useAuth } from '@/hooks/use-auth'
+import { useNavigate } from 'react-router-dom'
 import type { Expense, ExpenseType } from '@/types'
 
 export default function ExpensesPage() {
   const { t, locale } = useTranslation()
   const { expenses, categories, activeSpace, fetchExpenses, fetchCategories, addExpense, addCategory, deleteExpense } = useStore()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')

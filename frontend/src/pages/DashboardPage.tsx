@@ -5,10 +5,12 @@ import { useStore } from '@/store'
 import { format } from 'date-fns'
 import { useTranslation } from '@/i18n'
 import { dateLocale } from '@/lib/date-locale'
+import { useNavigate } from 'react-router-dom'
 
 export default function DashboardPage() {
   const { t, locale } = useTranslation()
   const { expenses, appointments, reminders, activeSpace, fetchExpenses, fetchAppointments, fetchReminders, loading } = useStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchExpenses(activeSpace ?? undefined)
@@ -97,7 +99,9 @@ export default function DashboardPage() {
                       <p className="text-sm font-medium">{e.description}</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(e.date), 'd MMM', { locale: dateLocale(locale) })}</p>
                     </div>
-                    <span className="text-sm font-semibold text-destructive">&euro;{e.amount.toFixed(2)}</span>
+                    <span className={`text-sm font-semibold ${e.type === 'income' ? 'text-emerald-500' : 'text-destructive'}`}>
+                      {e.type === 'income' ? '+' : '–'}&euro;{e.amount.toFixed(2)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -117,14 +121,14 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {appointments.slice(0, 5).map((a) => (
-                  <div key={a.id} className="flex items-center justify-between">
+                  <div key={a.id} className="flex items-center justify-between cursor-pointer" onClick={() => navigate('/calendar', { state: { focusDate: a.date } })}>
                     <div>
                       <p className="text-sm font-medium">{a.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(a.date), 'EEEE d MMMM', { locale: dateLocale(locale) })} {a.time && `alle ${a.time}`}
                       </p>
                     </div>
-                    <TrendingUp className="size-4 text-muted-foreground" />
+                    <TrendingUp className="size-4 text-muted-foreground shrink-0" />
                   </div>
                 ))}
               </div>
