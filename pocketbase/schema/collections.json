@@ -1,0 +1,77 @@
+{
+  "collections": [
+    {
+      "name": "expenses",
+      "type": "base",
+      "system": false,
+      "schema": [
+        { "name": "amount", "type": "number", "required": true, "min": 0 },
+        { "name": "category", "type": "text", "required": true, "max": 100 },
+        { "name": "description", "type": "text", "required": true, "max": 500 },
+        { "name": "date", "type": "date", "required": true },
+        { "name": "paid_by", "type": "relation", "required": true, "collectionId": "_pb_users_", "cascadeDelete": false }
+      ],
+      "indexes": ["CREATE INDEX idx_expenses_date ON expenses (date)"],
+      "listRule": "@request.auth.id != ''",
+      "viewRule": "@request.auth.id != ''",
+      "createRule": "@request.auth.id != ''",
+      "updateRule": "@request.auth.id != ''",
+      "deleteRule": "@request.auth.id != ''"
+    },
+    {
+      "name": "categories",
+      "type": "base",
+      "system": false,
+      "schema": [
+        { "name": "name", "type": "text", "required": true, "unique": true, "max": 100 },
+        { "name": "icon", "type": "text", "max": 50 },
+        { "name": "color", "type": "text", "max": 7 },
+        { "name": "type", "type": "select", "required": true, "values": ["expense", "appointment", "reminder"] }
+      ],
+      "listRule": "@request.auth.id != ''",
+      "viewRule": "@request.auth.id != ''",
+      "createRule": "@request.auth.id != ''",
+      "updateRule": "@request.auth.id != ''",
+      "deleteRule": "@request.auth.id != ''"
+    },
+    {
+      "name": "appointments",
+      "type": "base",
+      "system": false,
+      "schema": [
+        { "name": "title", "type": "text", "required": true, "max": 200 },
+        { "name": "description", "type": "text", "max": 500 },
+        { "name": "date", "type": "date", "required": true },
+        { "name": "time", "type": "text", "max": 5 },
+        { "name": "duration", "type": "number", "min": 0 },
+        { "name": "created_by", "type": "relation", "required": true, "collectionId": "_pb_users_", "cascadeDelete": false }
+      ],
+      "indexes": ["CREATE INDEX idx_appointments_date ON appointments (date)"],
+      "listRule": "@request.auth.id != ''",
+      "viewRule": "@request.auth.id != ''",
+      "createRule": "@request.auth.id != ''",
+      "updateRule": "@request.auth.id != ''",
+      "deleteRule": "@request.auth.id != ''"
+    },
+    {
+      "name": "reminders",
+      "type": "base",
+      "system": false,
+      "schema": [
+        { "name": "title", "type": "text", "required": true, "max": 200 },
+        { "name": "description", "type": "text", "max": 500 },
+        { "name": "type", "type": "select", "required": true, "values": ["todo", "recurring", "one-time"] },
+        { "name": "due_date", "type": "date", "required": true },
+        { "name": "recurring_rule", "type": "text", "max": 100 },
+        { "name": "done", "type": "bool", "required": true },
+        { "name": "created_by", "type": "relation", "required": true, "collectionId": "_pb_users_", "cascadeDelete": false }
+      ],
+      "indexes": ["CREATE INDEX idx_reminders_due_date ON reminders (due_date)", "CREATE INDEX idx_reminders_done ON reminders (done)"],
+      "listRule": "@request.auth.id != ''",
+      "viewRule": "@request.auth.id != ''",
+      "createRule": "@request.auth.id != ''",
+      "updateRule": "@request.auth.id != ''",
+      "deleteRule": "@request.auth.id != ''"
+    }
+  ]
+}

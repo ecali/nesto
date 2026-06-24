@@ -1,0 +1,14 @@
+{
+  "name": "nesto",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n be,fe -c cyan,magenta \"npm run dev:be\" \"npm run dev:fe\"",
+    "dev:be": "if [ -f ./pocketbase/pocketbase ]; then ./pocketbase/pocketbase serve --http=0.0.0.0:8090; else echo '⚠️  PocketBase non trovato. Esegui: cd pocketbase && ./download.sh'; exit 1; fi",
+    "dev:fe": "npm run dev --prefix frontend",
+    "setup:be": "cd pocketbase && ./download.sh",
+    "build": "npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
